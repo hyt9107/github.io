@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>随机形状生成学习卡片</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            color: #333;
+            overflow-x: hidden;
+            padding-bottom: 20px;
+        }
+        
+        .container {
+            max-width: 100%;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
+            padding: 0 10px;
+        }
+        
+        h1 {
+            font-size: 1.6rem;
+            margin: 5px 0;
+            background: linear-gradient(to right, #ff5e62, #3498db, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            line-height: 1.3;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            font-size: 0.82rem;
+            color: #555;
+            margin: 0 auto 10px;
+            line-height: 1.6;
+            max-width: 95%;
+        }
+        
+        .card-container {
+            background: #fff;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .shape-display-area {
+            width: 100%;
+            max-width: 300px;
+            height: 280px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .shape-display {
+            width: 190px;
+            height: 190px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        .description {
+            font-size: 1.4rem;
+            text-align: center;
+            margin: 12px 0;
+            padding: 12px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 12px;
+            width: 100%;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+        
+        .phonetic {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            text-align: center;
+            font-style: italic;
+            min-height: 20px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            width: 100%;
+        }
+        
+        button {
+            padding: 14px 20px;
+            font-size: 1rem;
+            background: linear-gradient(to right, #3498db, #9b59b6);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 120px;
+            max-width: 200px;
+            touch-action: manipulation;
+            font-weight: 500;
+        }
+        
+        button:hover, button:active {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(to right, #2980b9, #8e44ad);
+        }
+        
+        .counter {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: white;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+        }
+        
+        .counter span {
+            font-weight: bold;
+            color: #ffeb3b;
+            margin: 0 3px;
+        }
+        
+        .color-palette {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.03);
+            width: 100%;
+            max-width: 350px;
+        }
+        
+        .color-item {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            position: relative;
+        }
+        
+        .color-item:hover, .color-item:active {
+            transform: scale(1.15);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .color-item.active::after {
+            content: "";
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border: 2px solid #3498db;
+            border-radius: 50%;
+        }
+        
+        .shape-info {
+            margin-top: 20px;
+            padding: 12px;
+            background: #f8f9ff;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .shape-info h3 {
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        .shape-info p {
+            color: #7f8c8d;
+            line-height: 1.5;
+        }
+        
+        /* Shape styles */
+        .circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease;
+        }
+        
+        .oval {
+            width: 170px;
+            height: 130px;
+            border-radius: 50%;
+            transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease;
+        }
+        
+        .diamond {
+            position: relative;
+            width: 130px;
+            height: 130px;
+            transform: rotate(45deg);
+            background: transparent;
+            transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease;
+        }
+        
+        .triangle {
+            width: 0;
+            height: 0;
+            border-left: 70px solid transparent;
+            border-right: 70px solid transparent;
+            border-bottom: 130px solid;
+            transition: border-bottom-color 0.5s ease;
+        }
+        
+        .square {
+            width: 130px;
+            height: 130px;
+            transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease;
+        }
+        
+        .rectangle {
+            width: 170px;
+            height: 130px;
+            transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease;
+        }
+        
+        .heart {
+            position: relative;
+            width: 130px;
+            height: 120px;
+            transition: all 0.5s ease;
+        }
+        
+        .heart::before, 
+        .heart::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            width: 65px;
+            height: 104px;
+            border-radius: 65px 65px 0 0;
+            transition: background-color 0.5s ease;
+        }
+        
+        .heart::before {
+            left: 65px;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+        }
+        
+        .heart::after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+        
+        .star {
+            position: relative;
+            display: block;
+            width: 0;
+            height: 0;
+            color: currentColor;
+            border-right: 80px solid transparent;
+            border-bottom: 60px solid currentColor;
+            border-left: 80px solid transparent;
+            transform: rotate(35deg) scale(0.8);
+            transition: color 0.5s ease;
+        }
+        
+        .star::before {
+            content: "";
+            position: absolute;
+            top: -36px;
+            left: -52px;
+            border-bottom: 66px solid currentColor;
+            border-left: 21px solid transparent;
+            border-right: 21px solid transparent;
+            transform: rotate(-35deg);
+            transition: border-bottom-color 0.5s ease;
+        }
+        
+        .star::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: -85px;
+            width: 0;
+            height: 0;
+            border-right: 80px solid transparent;
+            border-bottom: 60px solid currentColor;
+            border-left: 80px solid transparent;
+            transform: rotate(-70deg);
+        }
+        
+        .hexagon {
+            position: relative;
+            width: 130px;
+            height: 75px;
+            margin: 30px 0;
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            transition: background-color 0.5s ease;
+        }
+        
+        .octagon {
+            width: 130px;
+            height: 130px;
+            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+            transition: background-color 0.5s ease;
+        }
+        
+        /* 针对平板和手机的响应式设计 */
+        @media (min-width: 480px) {
+            h1 {
+                font-size: 2.0rem;
+            }
+            
+            .subtitle {
+                font-size: 0.95rem;
+            }
+            
+            .shape-display-area {
+                height: 310px;
+            }
+            
+            .shape-display {
+                width: 220px;
+                height: 220px;
+            }
+            
+            .description {
+                font-size: 1.5rem;
+            }
+            
+            button {
+                padding: 14px 22px;
+                font-size: 1.05rem;
+            }
+            
+            .controls {
+                gap: 12px;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                padding: 25px;
+                max-width: 700px;
+            }
+            
+            h1 {
+                font-size: 2.3rem;
+            }
+            
+            .subtitle {
+                font-size: 1.0rem;
+                margin-bottom: 15px;
+            }
+            
+            .card-container {
+                padding: 25px;
+            }
+            
+            .shape-display-area {
+                height: 350px;
+                max-width: 350px;
+            }
+            
+            .shape-display {
+                width: 240px;
+                height: 240px;
+            }
+            
+            .description {
+                font-size: 1.7rem;
+                min-height: 90px;
+                padding: 20px;
+            }
+            
+            button {
+                padding: 15px 25px;
+                font-size: 1.1rem;
+            }
+            
+            .controls {
+                gap: 15px;
+            }
+            
+            .counter {
+                top: 20px;
+                right: 20px;
+                padding: 10px 15px;
+                font-size: 0.95rem;
+            }
+            
+            .color-item {
+                width: 32px;
+                height: 32px;
+            }
+        }
+        
+        /* 动画效果 */
+        @keyframes shapeChange {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .shape-transition {
+            animation: shapeChange 0.5s ease-in-out;
+        }
+        
+        /* 点击效果 */
+        .shape-display-area:active {
+            transform: scale(0.97);
+        }
+        
+        /* 水波纹效果 */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple {
+            to {
+                transform: scale(2.5);
+                opacity: 0;
+            }
+        }
+        
+        /* 形状标签 */
+        .shape-label {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #555;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+        
+        .wechat-tip {
+            color: white;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            max-width: 90%;
+        }
+    </style>
+</head>
+<body>
+    <div class="counter">
+        <i class="fas fa-sync-alt"></i> 已生成: <span id="counter">0</span> 个形状
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-shapes"></i> 随机形状学习卡片</h1>
+            <p class="subtitle">点击卡片或使用下方按钮生成随机形状和颜色，学习英语表达</p>
+        </header>
+        
+        <div class="card-container">
+            <div class="shape-display-area" id="shapeArea">
+                <div class="shape-display" id="shapeDisplay">
+                    <div class="circle" id="currentShape"></div>
+                </div>
+                <div class="shape-label" id="shapeLabel">圆形</div>
+            </div>
+            
+            <div class="description" id="description">
+                It's a red circle.
+            </div>
+            
+            <div class="phonetic" id="phonetic">
+                /ɪts ə red ˈsɜːrkl/
+            </div>
+            
+            <div class="controls">
+                <button id="generateBtn">
+                    <i class="fas fa-random"></i> 随机生成
+                </button>
+                <button id="generateColorBtn">
+                    <i class="fas fa-palette"></i> 改变颜色
+                </button>
+                <button id="generateShapeBtn">
+                    <i class="fas fa-star"></i> 改变形状
+                </button>
+            </div>
+            
+            <div class="color-palette" id="colorPalette">
+                <!-- 颜色选项将通过JS动态生成 -->
+            </div>
+        </div>
+        
+        <div class="shape-info">
+            <h3><i class="fas fa-info-circle"></i> 关于此学习工具</h3>
+            <p>此工具包含10种不同形状和11种颜色，帮助您学习形状的英文表达。点击形状卡片区域或使用按钮生成新的形状和颜色。</p>
+        </div>
+    </div>
+    
+    <div class="wechat-tip">
+        <i class="fas fa-mobile-alt"></i> 在微信中可直接打开使用，无需下载
+    </div>
+
+    <script>
+        // 定义形状和颜色数据
+        const shapes = [
+            { name: 'circle', chinese: '圆形', class: 'circle', colorProp: 'background-color', phonetic: 'ˈsɜːrkl' },
+            { name: 'oval', chinese: '椭圆形', class: 'oval', colorProp: 'background-color', phonetic: 'ˈoʊvl' },
+            { name: 'triangle', chinese: '三角形', class: 'triangle', colorProp: 'border-bottom-color', phonetic: 'ˈtraɪæŋɡl' },
+            { name: 'star', chinese: '五角星', class: 'star', colorProp: 'color', phonetic: 'stɑːr' },
+            { name: 'square', chinese: '正方形', class: 'square', colorProp: 'background-color', phonetic: 'skwer' },
+            { name: 'rectangle', chinese: '长方形', class: 'rectangle', colorProp: 'background-color', phonetic: 'ˈrek.tæŋ.ɡl' },
+            { name: 'heart', chinese: '心形', class: 'heart', colorProp: 'background-color', phonetic: 'hɑːrt' },
+            { name: 'diamond', chinese: '菱形', class: 'diamond', colorProp: 'background-color', phonetic: 'ˈdaɪəmənd' },
+            { name: 'hexagon', chinese: '六边形', class: 'hexagon', colorProp: 'background-color', phonetic: 'ˈheksəɡɑːn' },
+            { name: 'octagon', chinese: '八边形', class: 'octagon', colorProp: 'background-color', phonetic: 'ˈɑːktəɡɑːn' }
+        ];
+        
+        const colors = [
+            { name: 'red', chinese: '红色', value: '#e74c3c', phonetic: 'red' },
+            { name: 'yellow', chinese: '黄色', value: '#f1c40f', phonetic: 'ˈjeloʊ' },
+            { name: 'blue', chinese: '蓝色', value: '#3498db', phonetic: 'bluː' },
+            { name: 'green', chinese: '绿色', value: '#2ecc71', phonetic: 'ɡriːn' },
+            { name: 'orange', chinese: '橙色', value: '#e67e22', phonetic: 'ˈɔːrɪndʒ' },
+            { name: 'black', chinese: '黑色', value: '#2c3e50', phonetic: 'blæk' },
+            { name: 'white', chinese: '白色', value: '#ecf0f1', phonetic: 'waɪt' },
+            { name: 'brown', chinese: '咖色', value: '#795548', phonetic: 'braʊn' },
+            { name: 'gray', chinese: '灰色', value: '#95a5a6', phonetic: 'ɡreɪ' },
+            { name: 'purple', chinese: '紫色', value: '#9b59b6', phonetic: 'ˈpɜːrpl' },
+            { name: 'pink', chinese: '粉色', value: '#e84393', phonetic: 'pɪŋk' }
+        ];
+        
+        // 获取DOM元素
+        const shapeDisplay = document.getElementById('currentShape');
+        const descriptionEl = document.getElementById('description');
+        const phoneticEl = document.getElementById('phonetic');
+        const generateBtn = document.getElementById('generateBtn');
+        const generateColorBtn = document.getElementById('generateColorBtn');
+        const generateShapeBtn = document.getElementById('generateShapeBtn');
+        const counterEl = document.getElementById('counter');
+        const colorPalette = document.getElementById('colorPalette');
+        const shapeArea = document.getElementById('shapeArea');
+        const shapeLabel = document.getElementById('shapeLabel');
+        
+        // 当前形状和颜色
+        let currentShape = null;
+        let currentColor = null;
+        let counter = 0;
+        
+        // 初始化
+        function init() {
+            generateRandomShape();
+            generateRandomColor();
+            updateShapeDisplay();
+            updateCounter();
+            createColorPalette();
+            setupTouchEvents();
+        }
+        
+        // 创建颜色选项面板
+        function createColorPalette() {
+            colors.forEach(color => {
+                const colorItem = document.createElement('div');
+                colorItem.className = 'color-item';
+                colorItem.style.backgroundColor = color.value;
+                colorItem.title = color.chinese;
+                colorItem.dataset.color = color.name;
+                
+                colorItem.addEventListener('click', () => {
+                    currentColor = colors.find(c => c.name === colorItem.dataset.color);
+                    
+                    // 更新激活状态
+                    document.querySelectorAll('.color-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    colorItem.classList.add('active');
+                    
+                    updateShapeDisplay();
+                });
+                
+                colorPalette.appendChild(colorItem);
+            });
+        }
+        
+        // 设置触摸事件
+        function setupTouchEvents() {
+            shapeArea.addEventListener('click', handleShapeClick);
+            
+            // 添加水波纹效果
+            shapeArea.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const ripple = document.createElement('span');
+                ripple.className = 'ripple';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        }
+        
+        // 处理形状区域点击
+        function handleShapeClick() {
+            generateRandomShape();
+            generateRandomColor();
+            updateShapeDisplay();
+        }
+        
+        // 生成随机形状
+        function generateRandomShape() {
+            const randomIndex = Math.floor(Math.random() * shapes.length);
+            currentShape = shapes[randomIndex];
+        }
+        
+        // 生成随机颜色
+        function generateRandomColor() {
+            const randomIndex = Math.floor(Math.random() * colors.length);
+            currentColor = colors[randomIndex];
+            
+            // 更新激活状态
+            document.querySelectorAll('.color-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.color === currentColor.name) {
+                    item.classList.add('active');
+                }
+            });
+        }
+        
+        // 更新计数器
+        function updateCounter() {
+            counter++;
+            counterEl.textContent = counter;
+        }
+        
+        // 更新形状显示
+        function updateShapeDisplay() {
+            // 重置形状
+            shapeDisplay.className = '';
+            shapeDisplay.style = '';
+            shapeDisplay.innerHTML = '';
+            
+            // 添加动画类
+            shapeDisplay.classList.add('shape-transition');
+            setTimeout(() => {
+                shapeDisplay.classList.remove('shape-transition');
+            }, 500);
+            
+            // 应用新形状
+            shapeDisplay.classList.add(currentShape.class);
+            
+            // 更新形状标签
+            shapeLabel.textContent = currentShape.chinese;
+            
+            // 特殊处理心形
+            if (currentShape.name === 'heart') {
+                shapeDisplay.innerHTML = `
+                    <style>
+                        .heart::before, .heart::after { 
+                            background-color: ${currentColor.value};
+                            transition: background-color 0.5s ease;
+                        }
+                    </style>
+                `;
+            } 
+            // 其他形状
+            else {
+                // 应用新颜色
+                if (currentShape.colorProp === 'border-bottom-color') {
+                    shapeDisplay.style.borderLeft = '70px solid transparent';
+                    shapeDisplay.style.borderRight = '70px solid transparent';
+                    shapeDisplay.style.borderTop = '0px solid transparent';
+                    shapeDisplay.style.borderBottom = `140px solid ${currentColor.value}`;
+                } else if (currentShape.colorProp === 'color') {
+                    shapeDisplay.style.color = currentColor.value;
+                } else {
+                    shapeDisplay.style.backgroundColor = currentColor.value;
+                }
+            }
+            
+            // 更新描述（处理冠词a/an）
+            const article = ['a', 'e', 'i', 'o', 'u'].includes(currentColor.name.charAt(0)) ? 'an' : 'a';
+            descriptionEl.textContent = `It's ${article} ${currentColor.name} ${currentShape.name}.`;
+            
+            // 更新音标
+            phoneticEl.textContent = `/ɪts ${article} ${currentColor.phonetic} ${currentShape.phonetic}/`;
+            
+            // 更新计数器
+            updateCounter();
+        }
+        
+        // 事件监听
+        generateBtn.addEventListener('click', () => {
+            generateRandomShape();
+            generateRandomColor();
+            updateShapeDisplay();
+        });
+        
+        generateColorBtn.addEventListener('click', () => {
+            generateRandomColor();
+            updateShapeDisplay();
+        });
+        
+        generateShapeBtn.addEventListener('click', () => {
+            generateRandomShape();
+            updateShapeDisplay();
+        });
+        
+        // 初始化页面
+        init();
+    </script>
+</body>
+</html>
